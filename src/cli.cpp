@@ -26,6 +26,14 @@ bool file_exist(string route){
 
 void clear_screen(){system("cls");}
 
+void get_cursor_pos(int& x, int& y) {
+    HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
+    CONSOLE_SCREEN_BUFFER_INFO info = {};
+    GetConsoleScreenBufferInfo(hOut, &info);
+    x = info.dwCursorPosition.X;
+    y = info.dwCursorPosition.Y;
+}
+
 void print_at(int x, int y, const string& text) {
     HANDLE h = GetStdHandle(STD_OUTPUT_HANDLE);
 
@@ -38,18 +46,26 @@ void print_at(int x, int y, const string& text) {
 }
 
 string center_num(int x){
-    if(x<10){return " "+to_string(x)+" ";}
-    else if(x<100){return to_string(x/10)+" "+to_string(x%10);}
-    else{return to_string(x);}
+    bool neg=(x<0);
+    if(neg){
+        x=-x;
+        if(x<10){return " - "+to_string(x)+" ";}
+        else if(x<100){return " -"+to_string(x)+" ";}
+        else{return " -"+to_string(x);}  
+    }else{
+        if(x<10){return "  "+to_string(x)+"  ";}
+        else if(x<100){return " "+to_string(x/10)+" "+to_string(x%10)+" ";}
+        else{return " "+to_string(x)+" ";}    
+    }
 }
 
-void print_robot_body(int x,int y,int block=0){
+void print_robot_body(int x,int y,int block){
     print_at(x,y+0,"  .~*~.  ");
     print_at(x,y+1,"  [0_0]  ");
     print_at(x,y+2," +-----+ ");
     if(block){
   //print_at(x,y+3," |  1  |  ")
-        print_at(x,y+3," | "+center_num(block)+" | ");}
+        print_at(x,y+3," |"+center_num(block)+"| ");}
     else{
     print_at(x,y+3," |  X  | ");
     }
@@ -241,7 +257,7 @@ bool file_input(Stimulation_state &S){
     //cout << "准备开始读入，指令数M：" << m << endl;
     string s;
     while (read_line(s,f)) {S.prog.push_back(s);}
-    if(S.prog.size()!=m){alert_wait("文件格式错误：读取到"+to_string(S.prog.size())+"条指令，与M不符");S.prog.clear();return 0;}
+    if((int)S.prog.size()!=m){alert_wait("文件格式错误：读取到"+to_string(S.prog.size())+"条指令，与M不符");S.prog.clear();return 0;}
     alert_wait("成功读取"+to_string(m)+"条指令，准备开始游戏");
     return 1;
 }
@@ -266,22 +282,21 @@ bool ready_page(Stimulation_state &S){
     }
 }
 
+void print_block(int x,int y,int block){
+    print_at(x,y,"+-----+");
+    if(block){print_at(x,y+1,"|"+center_num(block)+"|");}
+    else{print_at(x,y+1,"|  X  |");}
+    print_at(x,y+2,"+-----+");
+}
+
 void play_page(Stimulation_state &S){
     clear_screen();
-    alert_wait("PLAY!!!");
-    cout << "输入你的选择：" << endl;
-    string choice;
-    read_line(choice);
-    if(choice=="1"){
-        S.game_result=1;
-        S.over_intro="Success";
-    }else if(choice=="2"){
-        S.game_result=2;
-        S.over_intro="Error on instruction X";
-    }else{
-        S.game_result=0;
-        S.over_intro="Failed";
-    }
+    print_info(S);
+    int cur_x,cur_y;
+    get_cursor_pos(cur_x,cur_y);
+    print_at(cur_x,cur_y,"IN");
+    for(int i=S.inbox_m+1,k=1;i<=S.inbox_n;i++,k++){print_block(cur_x+5,cur_y+(k-1)*2,S.val[i]);}
+    alert_wait("111");
 }
 
 void over_page(Stimulation_state &S){
