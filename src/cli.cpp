@@ -246,7 +246,7 @@ bool file_input(Stimulation_state &S){
     return 1;
 }
 
-void ready_page(Stimulation_state &S){
+bool ready_page(Stimulation_state &S){
     while(1){
         clear_screen();
         print_info(S);
@@ -255,13 +255,13 @@ void ready_page(Stimulation_state &S){
         cout << "请选择机器人程序的输入方式：\n";
         cout << "  1. 键盘输入（先输入指令数量 M，再逐条输入 M 条指令）\n";
         cout << "  2. 从文件读取（文件第一行为 M，之后每行一条指令）\n";
-        cout << "请输入 1 或 2：";
+        cout << "请输入 1 或 2：(输入0返回关卡选择界面)";
         string choice;
         read_line(choice);
         if (choice == "1") {
-            if (keyboard_input(S)) return;
+            if (keyboard_input(S)){return 1;}
         } else if (choice == "2") {
-            if (file_input(S)) return;
-        }
+            if (file_input(S)){return 1;}
+        }else if(choice=="0"){return 0;}
     }
 }

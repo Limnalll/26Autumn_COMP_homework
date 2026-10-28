@@ -74,9 +74,10 @@ int main(){
             if(!cur_level){break;}
             if(!load_level(cur_level,S)){alert_wait("关卡文件损坏或缺失，无法开始!");}
             else{game_sta=STA_READY;}
-        }else if(game_sta==STA_READY){
-            ready_page(S);
-            alert_wait(" ");
+        }else if(game_sta==STA_READY){game_sta=ready_page(S)?STA_PLAY:STA_START;}
+        else if(game_sta==STA_PLAY){
+            clear_screen();
+            alert_wait("PLAY!!!");
             break;
         }
     }
