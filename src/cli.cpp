@@ -265,3 +265,27 @@ bool ready_page(Stimulation_state &S){
         }else if(choice=="0"){return 0;}
     }
 }
+
+void play_page(Stimulation_state &S){
+    clear_screen();
+    alert_wait("PLAY!!!");
+    cout << "输入你的选择：" << endl;
+    string choice;
+    read_line(choice);
+    if(choice=="1"){
+        S.game_result=1;
+        S.over_intro="Success";
+    }else if(choice=="2"){
+        S.game_result=2;
+        S.over_intro="Error on instruction X";
+    }else{
+        S.game_result=0;
+        S.over_intro="Failed";
+    }
+}
+
+void over_page(Stimulation_state &S){
+    clear_screen();
+    cout << S.over_intro << endl;
+    alert_wait("你可以重新回到关卡选择界面");
+}

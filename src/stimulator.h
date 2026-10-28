@@ -65,6 +65,8 @@ struct Stimulation_state {
 
     // ---- 当前指令拆出的更新序列----
     std::vector<Adjustment> adjustments;
+    int game_result;
+    std::string over_intro;
 };
 
 #endif

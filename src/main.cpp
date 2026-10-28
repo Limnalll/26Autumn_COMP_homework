@@ -76,9 +76,11 @@ int main(){
             else{game_sta=STA_READY;}
         }else if(game_sta==STA_READY){game_sta=ready_page(S)?STA_PLAY:STA_START;}
         else if(game_sta==STA_PLAY){
-            clear_screen();
-            alert_wait("PLAY!!!");
-            break;
+            play_page(S);
+            game_sta=STA_OVER;
+        }else if(game_sta==STA_OVER){
+            over_page(S);
+            game_sta=STA_START;
         }
     }
     
