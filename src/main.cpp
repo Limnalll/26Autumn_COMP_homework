@@ -34,19 +34,19 @@ bool file_exist(string route){
 }
 
 //加载关卡数据
-bool load_level(int id, Stimulation_state& s){
+bool load_level(int id, Stimulation_state& S){
     if(!file_exist(level_file(id))){return 0;}
     try{
         json data=loadJson(level_file(id));
-        s.level_m=id;
-        s.level_name=data.value("name","未命名关卡");
-        s.hint=data.value("hint","没有提示哦");
-        s.inbox=data.at("inbox").get<vector<int>>();
-        s.inbox_n=s.inbox.size();
-        s.target_outbox=data.at("target_outbox").get<vector<int>>();
-        s.target_outbox_n=s.target_outbox.size();
-        s.ground_n=data["ground_n"].get<int>();
-        s.allowed=data["instructions"].get<vector<string>>();    
+        S.level_m=id;
+        S.level_name=data.value("name","未命名关卡");
+        S.hint=data.value("hint","没有提示哦");
+        S.val=data.at("inbox").get<vector<int>>();
+        S.inbox_n=S.val.size();
+        S.target_outbox=data.at("target_outbox").get<vector<int>>();
+        S.target_outbox_n=S.target_outbox.size();
+        S.ground_n=data["ground_n"].get<int>();
+        S.allowed=data["instructions"].get<vector<string>>();    
         return 1;
     }catch(const exception& e){
         printf("关卡文件损坏：%s\n",e.what());
@@ -76,9 +76,14 @@ int main(){
     while(1){
         if(game_sta==STA_START){
             cur_level=start_page(max_level(),process_value());
+            cout << "You Choose Task" << cur_level << endl;
             if(!cur_level){break;}
             if(!load_level(cur_level,S)){alert_wait("关卡文件损坏或缺失，无法开始!");}
             else{game_sta=STA_READY;}
+        }else if(game_sta==STA_READY){
+            ready_page(S);
+            alert_wait(" ");
+            break;
         }
     }
     

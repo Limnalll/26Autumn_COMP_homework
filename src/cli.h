@@ -8,5 +8,6 @@
 void init_console();
 void alert_wait(std::string info);
 int start_page(int max_level,int passed_level);
+void ready_page(Stimulation_state &S);
 
 #endif

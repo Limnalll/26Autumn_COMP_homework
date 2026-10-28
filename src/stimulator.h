@@ -34,7 +34,7 @@ struct Stimulation_state {
     std::string hint;                 // 任务描述/关卡提示
 
     // ---- 输入传送带 ----
-    std::vector<int> inbox;           // inbox[i]: 传送带上第 i 块积木的序号
+    //std::vector<int> inbox;           // inbox[i]: 传送带上第 i 块积木的序号
     int inbox_n = 0;                  // 初始积木总数
     int inbox_m = 0;                  // 已经取走了前 inbox_m 块
 

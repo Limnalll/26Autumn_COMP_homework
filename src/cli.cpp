@@ -148,3 +148,73 @@ int start_page(int max_level,int passed_level){
         else{return cur_level;}
     }
 }
+
+void print_info(const Stimulation_state S) {
+    cout << "========================== 关卡 " << S.level_m<< " · " << S.level_name<< " ==========================\n";
+    cout << "任务描述：" << S.hint << "\n";
+    cout << "输入序列（共 " << S.inbox_n << " 块积木）：";
+    for (int i = 0; i < S.inbox_n; i++) cout << S.val[i] << " ";
+    cout << "\n";
+    cout << "空地数(编号从0开始)：" << S.ground_n << endl;
+    cout << "可用指令：";
+    for (size_t i = 0; i < S.allowed.size(); i++) cout << S.allowed[i] << " ";
+    cout << "\n";
+    cout << "目标输出序列（共 " << S.target_outbox_n << " 块积木）：";
+    for (int i = 0; i < S.target_outbox_n; i++) cout << S.target_outbox[i] << " ";
+    cout << "\n";
+    cout << "（关卡结束时，输出序列与上面目标完全一致即通关）\n";
+}
+
+void print_instruction_sheet(const Stimulation_state& S) {
+    const char* names[8] = {"inbox", "outbox", "copyto", "copyfrom", "add", "sub", "jump", "jumpifzero"};
+    const char* descs[8] = {
+        "从输入传送带拿起第一块积木（原有手中积木被舍弃）",
+        "把手中积木放上输出传送带",
+        "复制手中积木到 X 号空地（若原有积木则被舍弃）",
+        "把 X 号空地积木的数字复制到手中（原有手中积木被舍弃）",
+        "手中积木数字加上 X 号空地积木数字（空地不变）",
+        "手中积木数字减去 X 号空地积木数字（空地不变）",
+        "跳转到第 X 条指令继续执行",
+        "若手中积木数字为 0，跳转到第 X 条指令"
+    };
+    cout << "\n[指令说明]\n";
+    for (int i = 0; i < 8; i++) {
+        bool ok = 0;
+        for (size_t k = 0; k < S.allowed.size(); k++)
+            if (S.allowed[k] == names[i]) { ok = 1; break; }
+        cout << names[i];
+        if (i >= 2 && i <= 7) cout << " X";
+        cout << (ok ? " [可用] " : " [禁用] ");
+        cout << " : " << descs[i] << "\n";
+    }
+}
+
+bool keyboard_input(){
+    alert_wait("1");
+    return 1;
+}
+
+bool file_input(){
+    alert_wait("2");
+    return 1;
+}
+
+void ready_page(Stimulation_state &S){
+    while(1){
+        clear_screen();
+        print_info(S);
+        print_instruction_sheet(S);
+        cout << "\n-------------------- 准备运行机器人程序 --------------------\n";
+        cout << "请选择机器人程序的输入方式：\n";
+        cout << "  1. 键盘输入（先输入指令数量 M，再逐条输入 M 条指令）\n";
+        cout << "  2. 从文件读取（文件第一行为 M，之后每行一条指令）\n";
+        cout << "请输入 1 或 2：";
+        string choice;
+        read_line(choice);
+        if (choice == "1") {
+            if (keyboard_input()) return;
+        } else if (choice == "2") {
+            if (file_input()) return;
+        }
+    }
+}
