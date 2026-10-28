@@ -70,7 +70,17 @@ void save_process(int id){
 
 int main(){
     GameSta game_sta = STA_START;
+    int cur_level;
+    Stimulation_state S;
     init_console();
-    start_page(max_level(),process_value());
+    while(1){
+        if(game_sta==STA_START){
+            cur_level=start_page(max_level(),process_value());
+            if(!cur_level){break;}
+            if(!load_level(cur_level,S)){alert_wait("关卡文件损坏或缺失，无法开始!");}
+            else{game_sta=STA_READY;}
+        }
+    }
+    
     return 0;
 }
