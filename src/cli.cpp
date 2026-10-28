@@ -5,6 +5,7 @@
 #include <windows.h>
 #include <string>
 #include <conio.h>
+#include <fstream>
 
 using namespace std;
 
@@ -15,6 +16,12 @@ void init_console() {
     if (hwnd != NULL) {
         ShowWindow(hwnd, SW_MAXIMIZE);
     }
+}
+
+//判断文件是否存在
+bool file_exist(string route){
+    ifstream f(route);
+    return f.is_open();
 }
 
 void clear_screen(){system("cls");}
@@ -88,14 +95,15 @@ void trim(string& s) {
     s = s.substr(a, b - a);
 }
 
-void read_line(string& s){
-    getline(cin,s);
+bool read_line(string& s,istream& source=cin){
+    if(!getline(source,s)){return 0;}
     trim(s);
+    return (!s.empty());
 }
 
-bool ask_int(int& v) {
+bool ask_int(int& v,istream& source=cin) {
     string l;
-    read_line(l);
+    if(!read_line(l,source)){return 0;}
     size_t i = 0;
     bool neg = 0;
     if (i < l.size() && (l[i] == '+' || l[i] == '-')) { neg = (l[i] == '-'); i++; }
@@ -116,7 +124,7 @@ void alert_wait(string info){
 }
 
 int start_page(int max_level,int passed_level){
-    while(true){
+    while(1){
         clear_screen();
         cout <<
             "==========================================================================\n"
@@ -189,13 +197,52 @@ void print_instruction_sheet(const Stimulation_state& S) {
     }
 }
 
-bool keyboard_input(){
-    alert_wait("1");
+bool prob_num(int &m,istream& source=cin){
+    if(!ask_int(m,source)){alert_wait("指令数量只能为整数");return 0;}
+    if(m<=0 || m >MAX_PROG){alert_wait("指令数量 M 需在 1~"+to_string(MAX_PROG)+"之间");return 0;}
     return 1;
 }
 
-bool file_input(){
-    alert_wait("2");
+bool keyboard_input(Stimulation_state &S){
+    int m;
+    cout << "\n请输入指令数量：";
+    if(!prob_num(m)){return 0;}
+    string s;
+    for(int i=1;i<=m;i++){
+        if(!read_line(s)){
+            cout << "指令不能为空" << endl;
+            i--;
+            continue;
+        }
+        S.prog.push_back(s);
+    }
+    alert_wait("成功读取"+to_string(m)+"条指令，准备开始游戏");
+    return 1;
+}
+
+//除去路径的引号
+void path_preproduce(string &path){
+    if (path.size() >= 2 &&
+    ((path[0] == '"' && path[path.size() - 1] == '"') ||
+        (path[0] == '\'' && path[path.size() - 1] == '\'')))
+    path = path.substr(1, path.size() - 2);
+}
+
+bool file_input(Stimulation_state &S){
+    cout << "\n请输入机器人程序文件的路径(请注意，文件中不能有空行)：";
+    string path;
+    read_line(path);
+    path_preproduce(path);
+    if(!file_exist(path)){alert_wait("文件不存在！");return 0;}
+    //cout << "成功打开文件" << path << endl;
+    ifstream f(path);
+    int m;
+    if(!prob_num(m,f)){return 0;}
+    //cout << "准备开始读入，指令数M：" << m << endl;
+    string s;
+    while (read_line(s,f)) {S.prog.push_back(s);}
+    if(S.prog.size()!=m){alert_wait("文件格式错误：读取到"+to_string(S.prog.size())+"条指令，与M不符");S.prog.clear();return 0;}
+    alert_wait("成功读取"+to_string(m)+"条指令，准备开始游戏");
     return 1;
 }
 
@@ -212,9 +259,9 @@ void ready_page(Stimulation_state &S){
         string choice;
         read_line(choice);
         if (choice == "1") {
-            if (keyboard_input()) return;
+            if (keyboard_input(S)) return;
         } else if (choice == "2") {
-            if (file_input()) return;
+            if (file_input(S)) return;
         }
     }
 }

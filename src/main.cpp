@@ -27,12 +27,6 @@ int max_level() {
     return id - 1;
 }
 
-//判断文件是否存在
-bool file_exist(string route){
-    ifstream f(route);
-    return f.is_open();
-}
-
 //加载关卡数据
 bool load_level(int id, Stimulation_state& S){
     if(!file_exist(level_file(id))){return 0;}
