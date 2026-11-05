@@ -11,7 +11,7 @@
 // ============================================================
 enum StaType {
     STA_CUR_M     = 1,  // new_value: 指令编号变为该值(1-based)
-    STA_POSITION  = 2,  // new_value: 机器人新位置(-1=输入带侧, 0..ground_n-1=空地, ground_n=输出带侧)
+    STA_POSITION  = 2,  // new_value: 机器人新位置(-1=输入带侧, 0..ground_n-1=空地, -2=输出带侧)
     STA_ISSTAND   = 3,  // new_value: 1=站起(准备移动) 0=蹲下(工作姿态)
     STA_OUTBOX    = 4,  // new_value: 追加到输出传送带末尾的积木序号
     STA_GROUND    = 5,  // extra_pos: 空地编号; new_value: 放上去的积木序号

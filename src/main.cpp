@@ -35,13 +35,14 @@ bool load_level(int id, Stimulation_state& S){
         S.level_m=id;
         S.level_name=data.value("name","未命名关卡");
         S.hint=data.value("hint","没有提示哦");
-        S.val.clear();
         S.val.push_back(0);
         for(int x:data["inbox"]){S.val.push_back(x);}
         S.inbox_n=S.val.size()-1;
-        S.target_outbox=data.at("target_outbox").get<vector<int>>();
-        S.target_outbox_n=S.target_outbox.size();
+        S.target_outbox.push_back(0);
+        for(int x:data["target_outbox"]){S.target_outbox.push_back(x);}
+        S.target_outbox_n=S.target_outbox.size()-1;
         S.ground_n=data["ground_n"].get<int>();
+        for(int i=0;i<=S.ground_n;i++){S.ground_block.push_back(0);}
         S.allowed=data["instructions"].get<vector<string>>();    
         return 1;
     }catch(const exception& e){
@@ -71,8 +72,7 @@ int main(){
     init_console();
     while(1){
         if(game_sta==STA_START){
-            cur_level=start_page(max_level(),process_value());
-            //cout << "You Choose Task" << cur_level << endl;
+            cur_level=start_page(max_level(),process_value(),S);
             if(!cur_level){break;}
             if(!load_level(cur_level,S)){alert_wait("关卡文件损坏或缺失，无法开始!");}
             else{game_sta=STA_READY;}

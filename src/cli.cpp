@@ -10,6 +10,12 @@
 using namespace std;
 
 const int MAX_PROG = 10000;   // 机器人程序的指令条数上限
+const int block_width = 7;
+const int block_height = 3;
+const int robot_height = 9;
+const int robot_width = 9;
+const int width_num=5;
+
 
 void init_console() {
     HWND hwnd = GetConsoleWindow();
@@ -26,7 +32,7 @@ bool file_exist(string route){
 
 void clear_screen(){system("cls");}
 
-void get_cursor_pos(int& x, int& y) {
+void get_cursor_position(int &x,int &y){
     HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
     CONSOLE_SCREEN_BUFFER_INFO info = {};
     GetConsoleScreenBufferInfo(hOut, &info);
@@ -46,29 +52,29 @@ void print_at(int x, int y, const string& text) {
 }
 
 string center_num(int x){
-    bool neg=(x<0);
-    if(neg){
+    if(x>=0){
+        if(x<10){return "  "+to_string(x)+"  ";}
+        else if(x<100){return " "+to_string(x/10)+" "+to_string(x%10)+" ";}
+        else{return " "+to_string(x)+" ";}    
+    }else{
         x=-x;
         if(x<10){return " - "+to_string(x)+" ";}
         else if(x<100){return " -"+to_string(x)+" ";}
         else{return " -"+to_string(x);}  
-    }else{
-        if(x<10){return "  "+to_string(x)+"  ";}
-        else if(x<100){return " "+to_string(x/10)+" "+to_string(x%10)+" ";}
-        else{return " "+to_string(x)+" ";}    
     }
 }
 
-void print_robot_body(int x,int y,int block){
+void print_block(int x,int y,int block_num,const Stimulation_state& S){
+    print_at(x,y,"+-----+");
+    if(block_num){print_at(x,y+1,"|"+center_num(S.val[block_num])+"|");}
+    else{print_at(x,y+1,"|  X  |");}
+    print_at(x,y+2,"+-----+");
+}
+
+void print_robot_body(int x,int y,int block_num,const Stimulation_state& S){
     print_at(x,y+0,"  .~*~.  ");
     print_at(x,y+1,"  [0_0]  ");
-    print_at(x,y+2," +-----+ ");
-    if(block){
-  //print_at(x,y+3," |  1  |  ")
-        print_at(x,y+3," |"+center_num(block)+"| ");}
-    else{
-    print_at(x,y+3," |  X  | ");
-    }
+    print_block(x+1,y+2,block_num,S);
     print_at(x,y+4,"|+-----+|");
 }
 void print_robot_foot_stand(int x,int y){
@@ -82,14 +88,14 @@ void print_robot_foot_kneel(int x,int y){
     print_at(x,y+1," //   \\\\ ");
     print_at(x,y+2,"_|     |_");
 }
-void print_robot(int x,int y,int block,int sta){
+void print_robot(int x,int y,int block,int sta,const Stimulation_state& S){
     // sta=0:站立；sta=1:下蹲
     if(sta){
         print_at(x,y+0,"           ");
-        print_robot_body(x,y+1,block);
+        print_robot_body(x,y+1,block,S);
         print_robot_foot_kneel(x,y+6);
     }else{
-        print_robot_body(x,y,block);
+        print_robot_body(x,y,block,S);
         print_robot_foot_stand(x,y+5);
     }
 }
@@ -139,14 +145,17 @@ void alert_wait(string info){
     wait_key();
 }
 
-int start_page(int max_level,int passed_level){
+int start_page(int max_level,int passed_level,Stimulation_state& S){
     while(1){
         clear_screen();
         cout <<
             "==========================================================================\n"
             "                积 木 机 器 人  ·  小 明 的 未 来 房 间                    \n"
             "==========================================================================\n";
-        print_robot(0,4,0,0);
+        int cur_x,cur_y;
+        get_cursor_position(cur_x,cur_y);
+        cur_x=0,cur_y++;
+        print_robot(cur_x,cur_y,0,0,S);
         cout <<
             "\n\n[玩法简介]\n"
             "  输入传送带(INBOX)送来一串积木，每块积木上有一个数字；\n"
@@ -173,18 +182,18 @@ int start_page(int max_level,int passed_level){
     }
 }
 
-void print_info(const Stimulation_state S) {
+void print_info(const Stimulation_state& S) {
     cout << "========================== 关卡 " << S.level_m<< " · " << S.level_name<< " ==========================\n";
     cout << "任务描述：" << S.hint << "\n";
     cout << "输入序列（共 " << S.inbox_n << " 块积木）：";
-    for (int i = 0; i < S.inbox_n; i++) cout << S.val[i] << " ";
+    for (int i = 1; i <= S.inbox_n; i++) cout << S.val[i] << " ";
     cout << "\n";
     cout << "空地数(编号从0开始)：" << S.ground_n << endl;
     cout << "可用指令：";
     for (size_t i = 0; i < S.allowed.size(); i++) cout << S.allowed[i] << " ";
     cout << "\n";
     cout << "目标输出序列（共 " << S.target_outbox_n << " 块积木）：";
-    for (int i = 0; i < S.target_outbox_n; i++) cout << S.target_outbox[i] << " ";
+    for (int i = 1; i <= S.target_outbox_n; i++) cout << S.target_outbox[i] << " ";
     cout << "\n";
     cout << "（关卡结束时，输出序列与上面目标完全一致即通关）\n";
 }
@@ -282,21 +291,66 @@ bool ready_page(Stimulation_state &S){
     }
 }
 
-void print_block(int x,int y,int block){
-    print_at(x,y,"+-----+");
-    if(block){print_at(x,y+1,"|"+center_num(block)+"|");}
-    else{print_at(x,y+1,"|  X  |");}
-    print_at(x,y+2,"+-----+");
+void print_move_robot(int x,int y,int block,int pos,int sta,const Stimulation_state &S){
+    if(pos==-1){print_robot(x,y-1,block,sta,S);}
+    else if(pos==-2){
+        int cur_x=x+(width_num-1)*(robot_width-1);
+        print_robot(cur_x,y-1,block,sta,S);
+    }
+    else{
+        int rela_num=pos%width_num;
+        int cur_x = x+rela_num*(robot_width-1);
+        print_robot(cur_x,y,block,sta,S);
+    }
 }
 
 void play_page(Stimulation_state &S){
     clear_screen();
     print_info(S);
-    int cur_x,cur_y;
-    get_cursor_pos(cur_x,cur_y);
-    print_at(cur_x,cur_y,"IN");
-    for(int i=S.inbox_m+1,k=1;i<=S.inbox_n;i++,k++){print_block(cur_x+5,cur_y+(k-1)*2,S.val[i]);}
+    int cur_x,cur_y,top_y;
+    get_cursor_position(cur_x,top_y);
+    top_y+=2,cur_x=0,cur_y=top_y;
+    for(int i=S.inbox_m+1;i<=S.inbox_n;i++){
+        print_block(cur_x,cur_y,i,S);
+        cur_y+=block_height-1;
+    }
+    int left_x=0+block_width+2;
+    cur_x=left_x-1,cur_y=top_y;
+    print_move_robot(cur_x,cur_y,S.cur_block,S.position,S.isStand,S);
+    cur_x=left_x,cur_y=top_y+robot_height+1;
+    for(int i=0;i<S.ground_n;i++){
+        int j=i+1;
+        print_block(cur_x,cur_y,S.ground_block[i],S);
+        if(j%width_num){cur_x+=block_width-1;}
+        else{cur_x=left_x;cur_y+=block_height-1;}
+    }
+    cur_x=left_x+(width_num*(block_width-1)+1)+2,cur_y=top_y;
+    for(int i=1;i<=S.outbox_m;i++){
+        print_block(cur_x,cur_y,S.outbox[i],S);
+        cur_y+=block_height-1;
+    }
+    if(S.outbox_m<S.target_outbox_n){
+        for(int i=S.outbox_m+1;i<=S.target_outbox_n;i++){
+            print_block(cur_x,cur_y,0,S);
+            cur_y+=block_height-1;
+        }       
+    }
     alert_wait("111");
+    // clear_screen();
+    // alert_wait("PLAY!!!");
+    // cout << "输入你的选择：" << endl;
+    // string choice;
+    // read_line(choice);
+    // if(choice=="1"){
+    //     S.game_result=1;
+    //     S.over_intro="Success";
+    // }else if(choice=="2"){
+    //     S.game_result=2;
+    //     S.over_intro="Error on instruction X";
+    // }else{
+    //     S.game_result=0;
+    //     S.over_intro="Failed";
+    // }
 }
 
 void over_page(Stimulation_state &S){
