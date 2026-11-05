@@ -44,6 +44,7 @@ bool load_level(int id, Stimulation_state& S){
         S.ground_n=data["ground_n"].get<int>();
         for(int i=0;i<=S.ground_n;i++){S.ground_block.push_back(0);}
         S.allowed=data["instructions"].get<vector<string>>();    
+        S.prog.push_back("");
         return 1;
     }catch(const exception& e){
         printf("关卡文件损坏：%s\n",e.what());

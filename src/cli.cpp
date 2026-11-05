@@ -241,6 +241,7 @@ bool keyboard_input(Stimulation_state &S){
         }
         S.prog.push_back(s);
     }
+    S.m=m;
     alert_wait("成功读取"+to_string(m)+"条指令，准备开始游戏");
     return 1;
 }
@@ -267,6 +268,7 @@ bool file_input(Stimulation_state &S){
     string s;
     while (read_line(s,f)) {S.prog.push_back(s);}
     if((int)S.prog.size()!=m){alert_wait("文件格式错误：读取到"+to_string(S.prog.size())+"条指令，与M不符");S.prog.clear();return 0;}
+    S.m=m;
     alert_wait("成功读取"+to_string(m)+"条指令，准备开始游戏");
     return 1;
 }
@@ -307,13 +309,14 @@ void print_move_robot(int x,int y,int block,int pos,int sta,const Stimulation_st
 void play_page(Stimulation_state &S){
     clear_screen();
     print_info(S);
-    int cur_x,cur_y,top_y;
+    int cur_x,cur_y,top_y,bottom_y=0;
     get_cursor_position(cur_x,top_y);
     top_y+=2,cur_x=0,cur_y=top_y;
     for(int i=S.inbox_m+1;i<=S.inbox_n;i++){
         print_block(cur_x,cur_y,i,S);
         cur_y+=block_height-1;
     }
+    bottom_y=max(bottom_y,cur_y);
     int left_x=0+block_width+2;
     cur_x=left_x-1,cur_y=top_y;
     print_move_robot(cur_x,cur_y,S.cur_block,S.position,S.isStand,S);
@@ -324,7 +327,9 @@ void play_page(Stimulation_state &S){
         if(j%width_num){cur_x+=block_width-1;}
         else{cur_x=left_x;cur_y+=block_height-1;}
     }
-    cur_x=left_x+(width_num*(block_width-1)+1)+2,cur_y=top_y;
+    bottom_y=max(bottom_y,cur_y);
+    int left_x2=left_x+(width_num*(block_width-1)+1)+2;
+    cur_x=left_x2,cur_y=top_y;
     for(int i=1;i<=S.outbox_m;i++){
         print_block(cur_x,cur_y,S.outbox[i],S);
         cur_y+=block_height-1;
@@ -335,22 +340,17 @@ void play_page(Stimulation_state &S){
             cur_y+=block_height-1;
         }       
     }
+    bottom_y=max(bottom_y,cur_y);
+    cur_x = left_x2+block_width+1,cur_y=top_y;
+    for(int i=1;i<=3*S.target_outbox_n;i++){print_at(cur_x,cur_y,"|");cur_y++;}
+    bottom_y=max(bottom_y,cur_y),cur_x+=4,cur_y=top_y;
+    print_at(cur_x-2,cur_y,"== CODE ==");
+    print_at(cur_x-2,cur_y+S.cur_m,">");
+    for(int i=1;i<=S.m;i++){cur_y++;print_at(cur_x,cur_y,S.prog[i]);}
+    bottom_y=max(bottom_y,cur_y);
+    bottom_y+=block_height+1;
+    print_at(0,bottom_y,"");
     alert_wait("111");
-    // clear_screen();
-    // alert_wait("PLAY!!!");
-    // cout << "输入你的选择：" << endl;
-    // string choice;
-    // read_line(choice);
-    // if(choice=="1"){
-    //     S.game_result=1;
-    //     S.over_intro="Success";
-    // }else if(choice=="2"){
-    //     S.game_result=2;
-    //     S.over_intro="Error on instruction X";
-    // }else{
-    //     S.game_result=0;
-    //     S.over_intro="Failed";
-    // }
 }
 
 void over_page(Stimulation_state &S){
